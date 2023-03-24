@@ -15,6 +15,12 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         const productCollection = client.db("emaJohn").collection("products");
+        app.get('/limitedProduct', async (req, res) => {
+            const query = {};
+            const cursor = productCollection.find(query);
+            const products = await cursor.skip(10).limit(8).toArray();
+            res.send(products);
+        })
 
         app.get('/products', async (req, res) => {
             const page = parseInt(req.query.page);
@@ -27,12 +33,20 @@ async function run() {
             res.send( {count, products})
         })
 
-        app.get('/products/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const product = await productCollection.findOne(query);
-            res.send(product);
-        })
+        // app.get('/products/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: new ObjectId(id) };
+        //     const product = await productCollection.findOne(query);
+        //     res.send(product);
+        // })
+        // search database
+        app.get('/products/:name', async (req, res) => {
+            let regex = new RegExp(req.params.name, "i")
+            let result = await productCollection.find({ name: regex }).toArray()
+            console.log(result)
+            res.send(result)
+        }) // end
+
     }
     finally {
 
